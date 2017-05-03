@@ -1,0 +1,34 @@
+{
+  "name": "nslocation",
+  "version": "0.1.0",
+  "description": "Node.js library wrapping macOS CoreLocation",
+  "main": "lib.js",
+  "scripts": {
+    "install": "node-gyp rebuild"
+  },
+  "author": "Victor Gama <hey@vito.io>",
+  "license": "MIT",
+  "gypfile": true,
+  "devDependencies": {
+    "node-gyp": "^3.6.1"
+  },
+  "os" : ["darwin"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/victorgama/nslocation.git"
+  },
+  "keywords": [
+    "location",
+    "geolocation",
+    "macOS",
+    "OSX",
+    "apple"
+  ],
+  "bugs": {
+    "url": "https://github.com/victorgama/nslocation/issues"
+  },
+  "homepage": "https://github.com/victorgama/nslocation",
+  "engines": {
+    "node": ">=0.12"
+  }
+}
