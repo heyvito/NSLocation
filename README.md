@@ -17,7 +17,7 @@ const NSLocation = require('nslocation');
 NSLocation.getLocation()
     .then(latLon => {
         console.log(latLon);
-        // => { lat: 45.4702979, lng: 9.1787528 }
+        // => { lat: 45.4702979, lng: 9.1787528, altitude: 748.8176879882812, horizontalAccuracy: 65, verticalAccuracy: 10 }
     })
     .catch(ex => {
         console.error(ex);

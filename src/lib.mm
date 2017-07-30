@@ -12,13 +12,17 @@ using namespace node;
 @interface NSLInstance : NSObject <CLLocationManagerDelegate> {
     double latitude;
     double longitude;
+    double altitude;
+    double horizontalAccuracy;
+    double verticalAccuracy;
+
     bool _hasData;
     NSInteger _errorCode;
 }
 
 - (void)reset;
 - (bool)hasData;
-- (void)copyLatitude:(double *)lat andLongitude:(double *)lng;
+- (void)copyLatitude:(double *)lat longitude:(double *)lng altitude:(double *)att horizontalAccuracy:(double *)horizontalAcc verticalAccuracy:(double *)verticalAcc;
 
 - (void)processReceivedLocation:(CLLocation *)location;
 - (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation;
@@ -41,9 +45,12 @@ using namespace node;
     return _errorCode;
 }
 
-- (void)copyLatitude:(double *)lat andLongitude:(double *)lng {
+- (void)copyLatitude:(double *)lat longitude:(double *)lng altitude:(double *)att horizontalAccuracy:(double *)horizontalAcc verticalAccuracy:(double *)verticalAcc {
     *lat = latitude;
     *lng = longitude;
+    *att = altitude;
+    *horizontalAcc = horizontalAccuracy;
+    *verticalAcc = verticalAccuracy;
 }
 
 - (void)processReceivedLocation:(CLLocation *)location {
@@ -51,6 +58,9 @@ using namespace node;
     CLLocationCoordinate2D coordinate = location.coordinate;
     latitude = coordinate.latitude;
     longitude = coordinate.longitude;
+    altitude = location.altitude;
+    horizontalAccuracy = location.horizontalAccuracy;
+    verticalAccuracy = location.verticalAccuracy;
 
     CFRunLoopStop(CFRunLoopGetCurrent());
 }
@@ -90,18 +100,19 @@ bool enableCoreLocation() {
     return false;
 }
 
-bool getCoreLocationPosition(double *lat, double *lng, NSInteger *error) {
+bool getCoreLocationPosition(double *lat, double *lng, double *altitude, double *horizontalAccuracy, double *verticalAccuracy, NSInteger *error) {
     NSLInstance *data = [[NSLInstance alloc] init];
     [globalLocationManager setDelegate:data];
     [globalLocationManager startUpdatingLocation];
 
-    // Will block until all the sources and timers are removed from the default run loop mode.
+    // Will block until all the sources and timers are removed from the
+    // main run loop.
     CFRunLoopRun();
 
     [globalLocationManager stopUpdatingLocation];
 
     if([data hasData]) {
-        [data copyLatitude:lat andLongitude:lng];
+        [data copyLatitude:lat longitude:lng altitude:altitude horizontalAccuracy:horizontalAccuracy verticalAccuracy:verticalAccuracy];
         [data release];
         return true;
     }
@@ -114,14 +125,15 @@ void GetLocation(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
 
-    double lat, lng;
+    double lat, lng, alt, horizontalAcc, verticalAcc;
     NSInteger error;
+
     if(!enableCoreLocation()) {
         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "ENOLOCATIONSERVICES")));
         return;
     }
 
-    if(!getCoreLocationPosition(&lat, &lng, &error)) {
+    if(!getCoreLocationPosition(&lat, &lng, &alt, &horizontalAcc, &verticalAcc, &error)) {
         switch(error) {
         case kCLErrorDenied:
             isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "ELOCATIONDENIED")));
@@ -138,6 +150,9 @@ void GetLocation(const FunctionCallbackInfo<Value>& args) {
     Local<Object> obj = Object::New(isolate);
     obj->Set(String::NewFromUtf8(isolate, "lat"), v8::Number::New(isolate, static_cast<double>(lat)));
     obj->Set(String::NewFromUtf8(isolate, "lng"), v8::Number::New(isolate, static_cast<double>(lng)));
+    obj->Set(String::NewFromUtf8(isolate, "altitude"), v8::Number::New(isolate, static_cast<double>(alt)));
+    obj->Set(String::NewFromUtf8(isolate, "horizontalAccuracy"), v8::Number::New(isolate, static_cast<double>(horizontalAcc)));
+    obj->Set(String::NewFromUtf8(isolate, "verticalAccuracy"), v8::Number::New(isolate, static_cast<double>(verticalAcc)));
 
     args.GetReturnValue().Set(obj);
 }
@@ -147,4 +162,3 @@ void Initialise(Handle<Object> exports) {
 }
 
 NODE_MODULE(nslocation, Initialise)
-
