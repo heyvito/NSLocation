@@ -30,7 +30,7 @@ NSLocation exposes a single `getLocation` method, which by its turn returns a `P
 ## macOS User Permission Prompt
 During the first invocation to `getLocation`, macOS will display a dialog asking the user whether they want to allow the application to access location information or not:
 
-![](https://www.dropbox.com/s/i6nfg547itpt7xg/NSLocation-PermissionDialog.png?dl=1)
+![](https://i.imgur.com/Q3G1Dkc.png)
 
 Rejection will result in an `ELOCATIONDENIED` error.
 
